@@ -1,4 +1,0 @@
-this is a test. It covers some
-basic cases that we should handle if we want this t.h.i.n.g. to run properly. Also lists; should be handled a bit and strings & such thinkgs. 
-
-math can probably be 1 + 1 skipped and 99% of other weird things.
