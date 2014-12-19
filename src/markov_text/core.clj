@@ -13,42 +13,50 @@
   (comment "is last word needs to handle words like N.S.A.")
   (-> word
     .trim
-    (.matches "[!.?]$")))
+    (.matches ".+[!.?]$")))
+
+(defn isParagraphBoundry [word]
+  (.isEmpty word))
 
 (defn createQueue []
-  (conj (clojure.lang.PersistentQueue/EMPTY) "."))
+  (conj (clojure.lang.PersistentQueue/EMPTY) ""))
 
 (defn addToChain [chain prefix word]
+  (println prefix " -> " word)
   (if-not (contains? @chain prefix)
     (dosync
-      (alter chain assoc prefix (atom {word (atom 1)})))
+      (alter chain assoc prefix (ref {word (atom 1)})))
     (let [prefixChain (get @chain prefix)]
       (if-not (contains? @prefixChain word)
-        (swap! prefixChain (assoc @prefixChain word (atom 1)))
+        (dosync (alter prefixChain assoc word (atom 1)))
         (let [wordCount (get @prefixChain word)]
           (swap! wordCount inc))))))
 
-(defn nextSentence [scanner & {:keys [prefix chain] :or {prefix (createQueue) chain (ref {})}}]
+(defn buildChain [scanner & {:keys [prefix chain] :or {prefix (createQueue) chain (ref {})}}]
   "returns the next cleaned sentence"
   (if (.hasNext scanner)
     (let [rawWord (.next scanner) word (cleanWord rawWord)]
-      (if (.isEmpty word)
-        (recur scanner {:prefix prefix :chain chain})
-        (let [prefix (if (> (.size prefix) 2) (pop prefix) prefix)]
+      (comment ":: " rawWord " - " (isParagraphBoundry rawWord) " - " (count rawWord))
+      (if (isParagraphBoundry rawWord)
+         (do
+          (println "> PARAGRAPH BOUNDRY")
+          (comment "handle pharagraphs by clearing prefix queue")
+          (recur scanner {:prefix (createQueue) :chain chain}))
+        (let [prefix (if (> (count prefix) 2) (pop prefix) prefix)]
           (addToChain chain (clojure.string/join " " prefix) word)
-          (recur scanner {:prefix (if (isLastWord rawWord) (createQueue) (conj prefix word)) :chain chain})
-        )))
+          (recur scanner {:prefix (conj prefix word) :chain chain})
+       )))
     @chain))
 
 
 (defn train [fileName chain]
-  (let [sc (new Scanner (io/file fileName)) prefix (vector)]
-    (let [chain (nextSentence sc)]
-      (println "chain size " (.size chain))
-      (println "sentence beginings " (get chain ""))
-      (println (keys chain))
-      (for [prefix (keys chain)]
-        (println prefix))
+  (let [sc (.useDelimiter (new Scanner (io/file fileName)) "([\t ]+)|([\n])") prefix (vector)]
+    (let [chain (buildChain sc)]
+      (println "chain size " (count chain))
+      (println "sentence beginings " (deref (get chain "")))
+      (loop [k (keys chain)]
+        (println ">")
+        (println k))
       )))
 
 (defn -main
