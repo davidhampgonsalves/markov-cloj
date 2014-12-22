@@ -11,3 +11,6 @@
     (is (isLastWord " asdf. ")))
   (testing "with ?" 
     (is (isLastWord "asdf?"))))
+
+(deftest getNextWord
+  )
