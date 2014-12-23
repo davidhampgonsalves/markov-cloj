@@ -8,7 +8,8 @@
   (-> word 
     .toLowerCase
     .trim
-    (.replaceAll "[,-0-9*&:;\"']+" "")))
+    (.replaceAll "[,0-9*&:;\"'-]+" ""))
+  word)
 
 (defn isLastWord [word]
   (comment "is last word needs to handle words like N.S.A.")
@@ -20,48 +21,34 @@
   (.isEmpty word))
 
 (defn createQueue []
-  (conj (clojure.lang.PersistentQueue/EMPTY) ""))
+  (clojure.lang.PersistentQueue/EMPTY))
 
-(defn addToChain [chain prefix word]
-  (if-not (contains? chain prefix)
-    (assoc! chain prefix {word (atom 1)})
-    (let [futureStates (get chain prefix)]
-      (if-not (contains? futureStates word)
-        (assoc! futureStates word (atom 1))
-        (swap! (get futureStates word) inc))
-        chain)))
+(defn build-prefix [prefix]
+  (str/join " " prefix))
 
-(defn addToChain [chain state nextState] 
-  (let [nextStateMap (if (contains? chain state) (get chain state) {nextState (atom 0)})]
-    
-    (assoc! chain nextState nextStateMap)
-    ))
-
-(defn buildChain [scanner & {:keys [prefix chain] :or {prefix (createQueue) chain (transient {})}}]
+(defn buildChain [scanner & {:keys [prefix chain] :or {prefix (createQueue) chain {}}}]
   "returns the next cleaned sentence"
   (if (.hasNext scanner)
     (let [rawWord (.next scanner) word (cleanWord rawWord)]
       (if (isParagraphBoundry rawWord)
         (recur scanner {:prefix (createQueue) :chain chain})
         (let [prefix (if (> (count prefix) 2) (pop prefix) prefix)
-              chain (addToChain chain (str/join " " prefix) word)]
+              chain (update-in chain [(build-prefix prefix) word] (fnil inc 0))]
           (recur scanner {:prefix (conj prefix word) :chain chain})
        )))
-    (persistent! chain)))
+    chain))
 
 (defn getNextWord [chain prefix]
-  
-  (let [states (seq (deref (get chain (str/join prefix))))
-        stateCount (reduce 
-                      (fn [stateCount stateAndCount] 
-                        (+ stateCount (deref (get stateAndCount 1)))) 0 states)
+  (let [states (seq (get chain (build-prefix prefix)))
+        stateCount (reduce (fn [c [state count]] 
+                  (+ c count)) 0 states)
         stateIndex (rand-int stateCount)]
-    
+      
       (loop [c 0 i 0]
-        (let [c (+ c  
-            (deref (get (nth states i) 1)))]
+        (let [state (nth states i)
+              c (+ c (last state))]
           (if (>= c stateIndex)
-            (get (nth states i) 0)
+            (first state)
             (recur c (inc i)))))))
 
 (defn generateSentence [chain & {:keys [sentence prefix] :or {sentence (vector) prefix (createQueue)}}]
@@ -75,9 +62,8 @@
   (let [sc (.useDelimiter (new Scanner (io/file fileName)) "([\t ]+)|([\n])") prefix (vector)]
     (let [chain (buildChain sc)]
       (println "chain size " (count chain))
-      (println chain)
-      (comment "need to walk chain to generate sentence")
-      (println (generateSentence chain))
+      (println "need to walk chain to generate sentence")
+      (println (generateSentence chain) )
       )))
 
 (defn -main

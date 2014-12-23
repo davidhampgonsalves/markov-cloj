@@ -1,13 +1,1 @@
-this is a test, of some simple sentences. They should be handled properly/quickly. Then & only then will everyone be happy.
-
-this is another begining.
-
-Thats the way the cookie... 
-in the jungle O.K?
-
-second last paragraph.
-
-
-
-
-final paragraph.
+this is a test, of some simple sentences.
