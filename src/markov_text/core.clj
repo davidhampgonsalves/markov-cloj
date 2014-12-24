@@ -18,7 +18,7 @@
     .trim
     (.matches ".+[!.?]$")))
 
-(defn isParagraphBoundry [word]
+(defn paragraph-boundry? [word]
   (.isEmpty word))
 
 (defn build-prefix [prefix]
@@ -28,7 +28,7 @@
   "returns the next cleaned sentence"
   (if (.hasNext scanner)
     (let [rawWord (.next scanner) word (clean-word rawWord)]
-      (if (isParagraphBoundry rawWord)
+      (if (paragraph-boundry? rawWord)
         (recur scanner {:prefix (PersistentQueue/EMPTY) :chain chain})
         (let [prefix (if (> (count prefix) 2) (pop prefix) prefix)
               chain (update-in chain [(build-prefix prefix) word] (fnil inc 0))]
@@ -47,24 +47,26 @@
             (first state)
             (recur c (inc i)))))))
 
-(defn generate-sentence [chain & {:keys [sentence prefix] :or {sentence (vector) prefix (PersistentQueue/EMPTY)}}]
+(defn generate-sentence [chain & 
+        {:keys [sentence prefix] :or {sentence (vector) prefix (PersistentQueue/EMPTY)}}]
     (let [prefix (if (> (count prefix) 2) (pop prefix) prefix)
           word (calculate-next-state chain prefix)]
       (if (last-word? word)
         (conj sentence word)
         (recur chain {:sentence (conj sentence word) :prefix (conj prefix word)}))))
 
-(defn train [fileName chain]
-  (let [sc (.useDelimiter (new Scanner (io/file fileName)) "([\t ]+)|([\n])") prefix (vector)]
+(defn create-scanner [fileName]
+  (.useDelimiter (new Scanner (io/file fileName)) "([\t ]+)|([\n])")
     (let [chain (build-chain sc)]
       (println "chain size " (count chain))
       (println "need to walk chain to generate sentence")
-      (println (generate-sentence chain) )
-      )))
+      (println (generate-sentence chain)))))
 
 (defn -main
   "I run the show"
   [& args]
-  (let [chain (ref hash-map)]
-    (train (nth args 0) chain)))
+  (let [sc (build-scanner (nth args 0))
+        chain (build-chain sc)]
+    (dotimes [i 3]
+      (print (str/capitalize (generate-sentence chain))))))
 
