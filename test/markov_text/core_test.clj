@@ -22,7 +22,15 @@
 
 (deftest generate-sentence-test 
   (testing "generates sentence"
-    (let [chain {"THE START" {"HAS" 1}
+    (let [chain {"END. THE" {"START" 1}
+                 "THE START" {"HAS" 1}
                  "START HAS" {"ENDED." 1}}]
-      (is (= (generate-sentence chain (into PersistentQueue/EMPTY ["THE" "START"]))
-             ["THE" "START" "HAS" "ENDED."])))))
+      (is (= (generate-sentence chain nil)
+             ["The" "start" "HAS" "ENDED."])))))
+
+(deftest build-chain-test
+  (testing "builds chain"
+    (let [scanner (create-scanner "input/test.txt")
+          chain (build-chain scanner)]
+      (is (= chain 
+             {"A SIMPLE" {"sentence." 1}, "OF A" {"simple" 1}, "TEST, OF" {"a" 1} "A TEST," {"of" 1}, "IS A" {"test," 1}, "THIS IS" {"a" 1}})))))

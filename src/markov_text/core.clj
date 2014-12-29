@@ -5,14 +5,10 @@
   (:import  (java.util Scanner)
             (clojure.lang PersistentQueue) ))
 
-(def prefix-count 3)
-
-
-; When paragraph add next work to chain on its own?
-; when generating sentences don't store the prefix just take from sentence ending.
+(def state-length 2)
 
 (defn clean-word [word]
-  (comment "maybe I should match states without some punctuation but leave it in the output")
+  "strip unwanted characters from our string"
   (-> word 
     .trim
     (.replaceAll "[\"]+" "")))
@@ -21,7 +17,7 @@
   (conj prefix (str/upper-case word)))
 
 (defn last-word? [word]
-  (comment "is last word needs to handle words like N.S.A.")
+  "Check word to see it its the last one in a sentence"
   (-> word
     .trim
     (.matches ".+[!.?]$")))
@@ -34,13 +30,15 @@
   "Build a Markov chain based on the provided scanner."
   (if (.hasNext scanner)
     (let [raw-word (.next scanner) word (clean-word raw-word)
-          prefix-full (> (count prefix) prefix-count)
-          prefix (if prefix-full (pop prefix) prefix)
-          chain (if prefix-full (update-in chain [(prefix-str prefix) word] (fnil inc 0)) chain)]
+          prefix-count (count prefix)
+          prefix (if (> prefix-count state-length) (pop prefix) prefix)
+          chain (if (>= prefix-count state-length) 
+                  (update-in chain [(prefix-str prefix) word] (fnil inc 0)) chain)]
         (recur scanner {:prefix (conj-prefix prefix word) :chain chain}))
     chain))
 
 (defn calculate-next-state [chain prefix]
+  "determine a random initial state based on the chain"
   (let [states (seq (get chain (prefix-str prefix)))
         state-count (reduce (fn [c [state count]] 
                   (+ c count)) 0 states)
@@ -62,15 +60,19 @@
 
 (defn generate-sentence [chain prefix & 
         {:keys [sentence] :or {sentence []}}]
+  "create sentence by walking the chain and applying weights"
     (if (nil? prefix)
       (let [prefix (initial-state chain)] 
-        (recur chain prefix {:sentence (into [] prefix)}))
+        (recur chain prefix {:sentence (into [] 
+          (str/split (str/capitalize 
+          (str/join " " prefix)) #" "))}))
       (let [word (calculate-next-state chain prefix)]
         (if (last-word? word)
           (conj sentence word)
           (recur chain (conj-prefix (pop prefix) word) {:sentence (conj sentence word)})))))
 
 (defn create-scanner [fileName]
+  "create a scanner on the given file"
   (.useDelimiter (new Scanner (io/file fileName)) "([\t \n]+)"))
 
 (defn -main
@@ -81,8 +83,8 @@
         chain (apply merge-with #(merge-with + % %2) chains)]
       (loop [i 0 prefix nil]
         (let [sentence (generate-sentence chain prefix)]
-          (println (str/join " " sentence))
-          (if (< i 3)
-            (recur (inc i) (into (PersistentQueue/EMPTY) (take-last prefix-count sentence))))))
+          (print (str/join " " sentence) " ")
+          (if (< i 10)
+            (recur (inc i) (into (PersistentQueue/EMPTY) (take-last state-length sentence))))))
       (shutdown-agents)))
 

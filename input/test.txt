@@ -1,1 +1,1 @@
-this is a test, of some simple sentences.
+ This is a test, of a simple sentence.
