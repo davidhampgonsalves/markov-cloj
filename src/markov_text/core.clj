@@ -37,6 +37,9 @@
         (recur scanner {:prefix (conj-prefix prefix word) :chain chain}))
     chain))
 
+(defn merge-chains [chains]
+  (apply merge-with #(merge-with + % %2) chains))
+
 (defn calculate-next-state [chain prefix]
   "determine a random initial state based on the chain"
   (let [states (seq (get chain (prefix-str prefix)))
@@ -80,7 +83,7 @@
   [& args]
   ;;build the chain for each input file in parallel and then merge them
   (let [chains (pmap #(build-chain (create-scanner %)) args)
-        chain (apply merge-with #(merge-with + % %2) chains)]
+        chain (merge-chains chains)]
       (loop [i 0 prefix nil]
         (let [sentence (generate-sentence chain prefix)]
           (print (str/join " " sentence) " ")

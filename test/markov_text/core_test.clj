@@ -33,4 +33,14 @@
     (let [scanner (create-scanner "input/test.txt")
           chain (build-chain scanner)]
       (is (= chain 
-             {"A SIMPLE" {"sentence." 1}, "OF A" {"simple" 1}, "TEST, OF" {"a" 1} "A TEST," {"of" 1}, "IS A" {"test," 1}, "THIS IS" {"a" 1}})))))
+             {"A SIMPLE" {"sentence." 1}, "OF A" {"simple" 1}, "TEST, OF" {"a" 1} 
+              "A TEST," {"of" 1}, "IS A" {"test," 1}, "THIS IS" {"a" 1}}))))
+  
+  (testing "build chain from multiple sources"
+    (let [chain1 (build-chain (create-scanner "input/test.txt"))
+          chain2 (build-chain (create-scanner "input/test.txt"))
+          chains [chain1 chain2]]
+      (is (= (merge-chains chains) 
+             {"A SIMPLE" {"sentence." 2}, "OF A" {"simple" 2}, 
+             "TEST, OF" {"a" 2}, "A TEST," {"of" 2}, "IS A" {"test," 2}, 
+             "THIS IS" {"a" 2}})))))
