@@ -5,6 +5,6 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [com.tumblr/jumblr "0.0.6"]]
-  :main ^:skip-aot markov-text.core
+  :main ^:skip-aot markov-cloj.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
