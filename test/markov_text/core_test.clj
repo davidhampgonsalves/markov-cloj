@@ -1,4 +1,4 @@
-(ns markov-text.core-test
+(ns markov-cloj.core-test
   (:require [clojure.test :refer :all]
             [markov-text.core :refer :all]
             [clojure.string :as str])
