@@ -19,6 +19,7 @@
 
 (defn format-post [msg]
   (-> msg
+      (str/replace #"(:[^\s]+)" "<code>$1</code>")
       (str/replace #"`([^`]+)`" "<code>$1</code>")
       (str/replace #" ([^ ]+-[^ ]+) " "<code>$1</code>")))
 
