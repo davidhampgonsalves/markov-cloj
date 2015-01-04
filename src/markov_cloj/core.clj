@@ -88,6 +88,13 @@
 (defn is-edn? [file-name]
   (re-find #"(?i)\.edn$" file-name))
 
+(defn get-text [chain length]
+  (loop [prefix nil sentence []]
+    (let [sentence (concat sentence (generate-sentence chain prefix))]
+      (if (< (count sentence) length)
+        (recur (into (PersistentQueue/EMPTY) (take-last state-length sentence)) sentence)
+        (str/join " " sentence)))))
+
 (defn get-chain [args]
   (if (is-edn? (first args))
     (read-chain (first args))
@@ -98,16 +105,11 @@
 (defn -main
   "build markov chain based on supplied input and generate text from them."
   [& args]
-
   (let [chain (get-chain args)]
     ; if an output file was passed write chain edn
     (if (and (not (is-edn? (first args))) (is-edn? (last args)))
       (let [output-filename (last args)]
         (write-chain chain output-filename)
-        (println "chain created:" output-filename))
-      (loop [prefix nil sentence []]
-        (let [sentence (concat sentence (generate-sentence chain prefix))]
-          (if (< (count sentence) 30)
-            (recur (into (PersistentQueue/EMPTY) (take-last state-length sentence)) sentence)
-            (println (str/join " " sentence))))))
-   (shutdown-agents)))
+        (println "chain created:" output-filename)
+      (println (get-text chain 30))))
+    (shutdown-agents)))
