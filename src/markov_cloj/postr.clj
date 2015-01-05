@@ -35,7 +35,7 @@
                (get-in config [:oauth :secret]))
     (.postCreate client (get-in config [:blog :name]) details)))
 
-(defn -main[args] 
+(defn -main[& args] 
   "generate some text with the passed in markov chain, format it and post it to tumblr"
   (let [chain (markov/get-chain args)
     text (-> (markov/get-text chain 30)
