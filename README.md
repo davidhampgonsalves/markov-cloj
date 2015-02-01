@@ -18,7 +18,9 @@ lein with-profile tumblr run input.edn
 ```
 
 ##Schedule Execution
+```shell
 mv markov-tumblr.plist ~/Library/LauchAgents
 sudo chmod 600 ~/Library/LaunchAgents/markov-tumblr.plist
 sudo chown root ~/Library/LaunchAgents/markov-tumblr.plist
 sudo launchctl load -w ~/Library/LaunchAgents/markov-tumblr.plist
+```
