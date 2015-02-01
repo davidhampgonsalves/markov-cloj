@@ -16,3 +16,9 @@ lein with-profile markov run output.edn
 # to post a formatted message to tumblr
 lein with-profile tumblr run input.edn
 ```
+
+##Schedule Execution
+mv markov-tumblr.plist ~/Library/LauchAgents
+sudo chmod 600 ~/Library/LaunchAgents/markov-tumblr.plist
+sudo chown root ~/Library/LaunchAgents/markov-tumblr.plist
+sudo launchctl load -w ~/Library/LaunchAgents/markov-tumblr.plist

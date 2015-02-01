@@ -22,6 +22,7 @@
   (-> msg
       (str/replace #"(:[^\s]+)" "<code>$1</code>")
       (str/replace #"`([^`]+)`" "<code>$1</code>")
+      (str/replace #"\[([^\]]+)\]" "<code>$1</code>")
       (str/replace #"[’‘]" "")
       (str/replace #" ([^ ]+-[^ ]+) " " <code>$1</code> ")))
 
