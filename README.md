@@ -2,7 +2,7 @@ Markov-chain generator in Clojure. You can use it as a library or from the comma
 
 It is the brains behind [Scrumdiddlyumptious Clojure](http://scrumdiddlyumptious-clojure.tumblr.com/).
 
-##Comand-Line Usage
+## Comand-Line Usage
 ```shell
 # to generate text based on some training material
 lein with-profile markov run input-1.txt input-2.txt
@@ -17,9 +17,9 @@ lein with-profile markov run output.edn
 lein with-profile tumblr run input.edn
 ```
 
-##Schedule Execution
+## Schedule Execution
 ```shell
-cp markov-tumblr.plist ~/Library/LaunchAgents
+sudo cp markov-tumblr.plist ~/Library/LaunchAgents
 sudo chmod 600 ~/Library/LaunchAgents/markov-tumblr.plist
 sudo chown root ~/Library/LaunchAgents/markov-tumblr.plist
 sudo launchctl load -w ~/Library/LaunchAgents/markov-tumblr.plist
